@@ -44,6 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await api.post('/auth/login', formData);
     const newToken = res.data.access_token;
     localStorage.setItem('token', newToken);
+    // Явно устанавливаем заголовок перед следующим запросом
+    api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
     setToken(newToken);
     const userRes = await api.get('/auth/me');
     setUser(userRes.data);
