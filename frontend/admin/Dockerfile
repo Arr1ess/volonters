@@ -1,8 +1,16 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+# Копируем только package files для кэширования
 COPY package*.json ./
-RUN npm install
+
+# Устанавливаем зависимости с оптимизацией
+RUN npm install --prefer-offline --no-audit --no-fund --progress=false
+
+# Копируем исходники
 COPY . .
+
+# Собираем
 RUN npm run build
 
 # Production
