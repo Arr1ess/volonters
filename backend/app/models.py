@@ -4,7 +4,7 @@ app/models.py — SQLAlchemy модели для системы цифровых
 import uuid
 from datetime import datetime
 from sqlalchemy import (
-    Column, String, DateTime, Boolean, Enum, ForeignKey, Text,
+    Column, String, DateTime, Boolean, ForeignKey, Text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -22,11 +22,7 @@ class User(Base):
     email = Column(String(255), unique=True, nullable=False, index=True)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=False)
-    role = Column(
-        Enum("admin", "volunteer", "partner", name="user_role"),
-        nullable=False,
-        default="volunteer",
-    )
+    role = Column(String(20), nullable=False, default="volunteer")
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -57,11 +53,7 @@ class Volunteer(Base):
         default=lambda: f"VC-{uuid.uuid4().hex[:12].upper()}",
     )
     expiration_date = Column(DateTime, nullable=False)
-    status = Column(
-        Enum("active", "expired", "suspended", "revoked", name="card_status"),
-        nullable=False,
-        default="active",
-    )
+    status = Column(String(20), nullable=False, default="active")
     photo_url = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
