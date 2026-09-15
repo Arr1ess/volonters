@@ -32,7 +32,7 @@ export default function VolunteersList() {
     }
   };
 
-  useEffect(() => { loadVolunteers(); }, [page, statusFilter]);
+  useEffect(() => { loadVolunteers(); }, [page, statusFilter, search]);
 
   const handleSearch = () => {
     setPage(1);
