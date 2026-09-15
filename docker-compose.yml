@@ -1,0 +1,97 @@
+version: "3.9"
+
+services:
+  # ─── 1. PostgreSQL Database ───
+  db:
+    image: postgres:16-alpine
+    container_name: volunteer_db
+    restart: always
+    environment:
+      POSTGRES_DB: volunteer_cards
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d volunteer_cards"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ─── 2. FastAPI Backend ───
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: volunteer_backend
+    restart: always
+    environment:
+      DATABASE_URL: postgresql+asyncpg://admin:${DB_PASSWORD:-secret123}@db:5432/volunteer_cards
+      JWT_SECRET: ${JWT_SECRET:-my-super-secret-key-change-me}
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend_net
+      - frontend_net
+
+  # ─── 3. Frontend Admin ───
+  frontend-admin:
+    build:
+      context: ./frontend/admin
+      dockerfile: Dockerfile
+    container_name: volunteer_admin
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - frontend_net
+
+  # ─── 4. Frontend Volunteer ───
+  frontend-volunteer:
+    build:
+      context: ./frontend/volunteer
+      dockerfile: Dockerfile
+    container_name: volunteer_app
+    restart: always
+    ports:
+      - "3001:80"
+    depends_on:
+      - backend
+    networks:
+      - frontend_net
+
+  # ─── 5. Frontend Partner ───
+  frontend-partner:
+    build:
+      context: ./frontend/partner
+      dockerfile: Dockerfile
+    container_name: volunteer_partner
+    restart: always
+    ports:
+      - "3002:80"
+    depends_on:
+      - backend
+    networks:
+      - frontend_net
+
+volumes:
+  pg
+    driver: local
+
+networks:
+  backend_net:
+    driver: bridge
+  frontend_net:
+    driver: bridge
