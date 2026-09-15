@@ -57,7 +57,7 @@ export default function Dashboard() {
           </div>
         )}
         {/* Navigation */}
-        <nav className="mb-8 flex gap-4">
+        <nav className="mb-8 flex gap-4 flex-wrap">
           <Link to="/" className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm">
             Главная
           </Link>
@@ -65,7 +65,13 @@ export default function Dashboard() {
             Волонтеры
           </Link>
           <Link to="/volunteers/new" className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700">
-            + Добавить
+            + Добавить волонтера
+          </Link>
+          <Link to="/partners" className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-sm hover:bg-gray-300">
+            Партнеры
+          </Link>
+          <Link to="/partners/new" className="px-4 py-2 bg-purple-600 text-white rounded-md text-sm hover:bg-purple-700">
+            + Добавить партнера
           </Link>
         </nav>
 

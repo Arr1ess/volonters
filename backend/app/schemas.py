@@ -13,6 +13,13 @@ class Token(BaseModel):
     token_type: str
 
 
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=6, max_length=100)
+    full_name: str = Field(..., min_length=2, max_length=255)
+    role: str = Field(..., pattern="^(admin|volunteer|partner)$")
+
+
 class UserResponse(BaseModel):
     id: UUID
     email: str
