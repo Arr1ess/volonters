@@ -5,6 +5,8 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import VolunteersList from './pages/VolunteersList';
 import CreateVolunteer from './pages/CreateVolunteer';
+import PartnersList from './pages/PartnersList';
+import CreatePartner from './pages/CreatePartner';
 
 function AppRoutes() {
   const location = useLocation();
@@ -25,6 +27,16 @@ function AppRoutes() {
       <Route path="/volunteers/new" element={
         <ProtectedRoute allowedRoles={['admin']}>
           <CreateVolunteer />
+        </ProtectedRoute>
+      } />
+      <Route path="/partners" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <PartnersList key={location.key} />
+        </ProtectedRoute>
+      } />
+      <Route path="/partners/new" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <CreatePartner />
         </ProtectedRoute>
       } />
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -11,7 +11,7 @@ from app.database import get_db
 from app.models import User, Volunteer
 from app.schemas import (
     VolunteerCreate, VolunteerUpdate, VolunteerResponse,
-    VolunteerExtend, PaginatedResponse,
+    VolunteerExtend, PaginatedResponse, UserCreate, UserResponse,
 )
 from app.auth import require_role, hash_password
 
@@ -55,6 +55,66 @@ async def create_volunteer(
     await db.flush()
     await db.refresh(volunteer)
     return volunteer
+
+
+@router.post("/users", response_model=UserResponse, status_code=201)
+async def create_user(
+    data: UserCreate,
+    admin: User = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Создание нового пользователя (партнера или волонтера).
+    """
+    # Проверяем уникальность email
+    existing = await db.execute(select(User).where(User.email == data.email))
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="Email уже зарегистрирован")
+
+    # Создаем пользователя
+    user = User(
+        email=data.email,
+        hashed_password=hash_password(data.password),
+        full_name=data.full_name,
+        role=data.role,
+        is_active=True,
+    )
+    db.add(user)
+    await db.flush()
+    await db.refresh(user)
+    return user
+
+
+@router.get("/users", response_model=list[UserResponse])
+async def list_users(
+    admin: User = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Получить список всех пользователей"""
+    result = await db.execute(select(User).order_by(User.created_at.desc()))
+    users = result.scalars().all()
+    return users
+
+
+@router.delete("/users/{user_id}")
+async def delete_user(
+    user_id: UUID,
+    admin: User = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Удалить пользователя"""
+    # Нельзя удалить самого себя
+    if str(user_id) == str(admin.id):
+        raise HTTPException(status_code=400, detail="Нельзя удалить свой аккаунт")
+    
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    
+    await db.delete(user)
+    await db.flush()
+    return {"message": "Пользователь удален"}
 
 
 @router.put("/volunteers/{volunteer_id}", response_model=VolunteerResponse)
