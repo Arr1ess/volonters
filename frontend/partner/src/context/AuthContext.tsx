@@ -38,7 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     formData.append('username', email);
     formData.append('password', password);
     const res = await api.post('/auth/login', formData);
-    localStorage.setItem('token', res.data.access_token);
+    const newToken = res.data.access_token;
+    localStorage.setItem('token', newToken);
+    api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
     const userRes = await api.get('/auth/me');
     setUser(userRes.data);
   };
