@@ -26,7 +26,7 @@ export default function Scanner() {
     setLoading(true);
 
     try {
-      const res = await api.post('/partner/verify-qr', { qr_ qrData.trim() });
+      const res = await api.post('/partner/verify-qr', { qr_data: qrData.trim() });
       setResult(res.data);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Ошибка проверки');
