@@ -87,7 +87,7 @@ services:
       - frontend_net
 
 volumes:
-  pg
+  pg:
     driver: local
 
 networks:
