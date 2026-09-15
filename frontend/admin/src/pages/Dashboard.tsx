@@ -13,6 +13,7 @@ interface Stats {
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const [stats, setStats] = useState<Stats>({ total: 0, active: 0, expired: 0, suspended: 0 });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Загружаем статистику
@@ -28,7 +29,10 @@ export default function Dashboard() {
         expired: expired.data.total,
         suspended: suspended.data.total,
       });
-    }).catch(console.error);
+    }).catch((err) => {
+      console.error('Error loading stats:', err);
+      setError('Не удалось загрузить статистику. Проверьте подключение к API.');
+    });
   }, []);
 
   return (
@@ -47,6 +51,11 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {error && (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg mb-6 text-sm">
+            ⚠️ {error}
+          </div>
+        )}
         {/* Navigation */}
         <nav className="mb-8 flex gap-4">
           <Link to="/" className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm">
