@@ -24,10 +24,20 @@ export default function ManualCheck() {
     setLoading(true);
 
     try {
-      const res = await api.get(`/partner/volunteer/${volunteerId.trim()}`);
+      const input = volunteerId.trim();
+      // Определяем формат ввода: UUID или card_id
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input);
+      
+      let res;
+      if (isUUID) {
+        res = await api.get(`/partner/volunteer/${input}`);
+      } else {
+        res = await api.get(`/partner/volunteer/by-card/${input}`);
+      }
       setInfo(res.data);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Волонтер не найден');
+      const errorMessage = err.response?.data?.detail || 'Волонтер не найден';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

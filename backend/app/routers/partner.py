@@ -129,3 +129,29 @@ async def get_volunteer_public(
             and volunteer.expiration_date > datetime.utcnow()
         ),
     )
+
+
+@router.get("/volunteer/by-card/{card_id}", response_model=VolunteerPublicResponse)
+async def get_volunteer_by_card_id(
+    card_id: str,
+    partner: User = Depends(require_role("partner")),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Получить публичные данные волонтера по card_id.
+    """
+    result = await db.execute(select(Volunteer).where(Volunteer.card_id == card_id))
+    volunteer = result.scalar_one_or_none()
+    if not volunteer:
+        raise HTTPException(status_code=404, detail="Волонтер не найден")
+
+    return VolunteerPublicResponse(
+        full_name=volunteer.full_name,
+        card_id=volunteer.card_id,
+        status=volunteer.status,
+        expiration_date=volunteer.expiration_date,
+        is_valid=(
+            volunteer.status == "active"
+            and volunteer.expiration_date > datetime.utcnow()
+        ),
+    )
