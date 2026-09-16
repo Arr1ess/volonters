@@ -16,6 +16,16 @@ export default function ManualCheck() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const statusLabel = (s: string) => {
+    switch (s) {
+      case 'active': return 'Активна';
+      case 'expired': return 'Просрочена';
+      case 'suspended': return 'Отключена';
+      case 'revoked': return 'Отозвана';
+      default: return s;
+    }
+  };
+
   const handleCheck = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!volunteerId.trim()) return;
@@ -88,7 +98,7 @@ export default function ManualCheck() {
               <h3 className="text-lg font-bold">{info.full_name}</h3>
               <p className="text-xs text-gray-600 font-mono mt-1">ID: {info.card_id}</p>
               <p className="text-sm mt-2">
-                Статус: <strong>{info.status}</strong>
+                Статус: <strong>{statusLabel(info.status)}</strong>
               </p>
               <p className="text-sm text-gray-600">
                 Действует до: {new Date(info.expiration_date).toLocaleDateString('ru-RU')}

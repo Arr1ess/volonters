@@ -49,13 +49,23 @@ export default function VolunteersList() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Удалить волонтера?')) return;
+  const handleDeactivate = async (id: string) => {
+    if (!confirm('Отключить волонтера? Его карта станет недействительной.')) return;
     try {
-      await api.delete(`/admin/volunteers/${id}`);
+      await api.post(`/admin/volunteers/${id}/deactivate`);
       loadVolunteers();
     } catch (err) {
-      alert('Ошибка удаления');
+      alert('Ошибка отключения');
+    }
+  };
+
+  const handleActivate = async (id: string) => {
+    if (!confirm('Активировать волонтера?')) return;
+    try {
+      await api.post(`/admin/volunteers/${id}/activate`);
+      loadVolunteers();
+    } catch (err) {
+      alert('Ошибка активации');
     }
   };
 
@@ -64,7 +74,18 @@ export default function VolunteersList() {
       case 'active': return 'bg-green-100 text-green-800';
       case 'expired': return 'bg-red-100 text-red-800';
       case 'suspended': return 'bg-yellow-100 text-yellow-800';
+      case 'revoked': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const statusLabel = (s: string) => {
+    switch (s) {
+      case 'active': return 'Активна';
+      case 'expired': return 'Просрочена';
+      case 'suspended': return 'Отключена';
+      case 'revoked': return 'Отозвана';
+      default: return s;
     }
   };
 
@@ -102,7 +123,8 @@ export default function VolunteersList() {
             <option value="">Все статусы</option>
             <option value="active">Активные</option>
             <option value="expired">Просроченные</option>
-            <option value="suspended">Приостановленные</option>
+            <option value="suspended">Отключенные</option>
+            <option value="revoked">Отозванные</option>
           </select>
           <Link to="/volunteers/new" className="px-4 py-2 bg-green-600 text-white rounded-md text-sm">
             + Добавить
@@ -129,7 +151,7 @@ export default function VolunteersList() {
                   <td className="px-4 py-3 text-sm">{new Date(v.expiration_date).toLocaleDateString('ru-RU')}</td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${statusColor(v.status)}`}>
-                      {v.status}
+                      {statusLabel(v.status)}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right space-x-2">
@@ -139,12 +161,21 @@ export default function VolunteersList() {
                     >
                       Продлить
                     </button>
-                    <button
-                      onClick={() => handleDelete(v.id)}
-                      className="text-xs px-2 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200"
-                    >
-                      Удалить
-                    </button>
+                    {v.status === 'active' ? (
+                      <button
+                        onClick={() => handleDeactivate(v.id)}
+                        className="text-xs px-2 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200"
+                      >
+                        Отключить
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleActivate(v.id)}
+                        className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200"
+                      >
+                        Активировать
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
