@@ -59,16 +59,23 @@ async def verify_qr_code(
 
     # Проверяем статус
     if volunteer.status != "active":
+        status_messages = {
+            "suspended": "Карта отключена администратором",
+            "expired": "Срок действия карты истек",
+            "revoked": "Карта отозвана",
+        }
+        reason = status_messages.get(volunteer.status, f"Карта неактивна (статус: {volunteer.status})")
+        
         log = VerificationLog(
             volunteer_id=volunteer.id,
             partner_id=partner.id,
             is_valid=False,
-            reason=f"Статус карты: {volunteer.status}",
+            reason=reason,
         )
         db.add(log)
         return QRVerifyResponse(
             is_valid=False,
-            reason=f"Карта неактивна (статус: {volunteer.status})",
+            reason=reason,
             volunteer_name=volunteer.full_name,
         )
 

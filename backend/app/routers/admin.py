@@ -189,21 +189,42 @@ async def get_volunteer(
     return volunteer
 
 
-@router.delete("/volunteers/{volunteer_id}")
-async def delete_volunteer(
+@router.post("/volunteers/{volunteer_id}/deactivate", response_model=VolunteerResponse)
+async def deactivate_volunteer(
     volunteer_id: UUID,
     admin: User = Depends(require_role("admin")),
     db: AsyncSession = Depends(get_db),
 ):
-    """Удалить волонтера"""
+    """Отключить волонтера (изменить статус на suspended)"""
     result = await db.execute(select(Volunteer).where(Volunteer.id == volunteer_id))
     volunteer = result.scalar_one_or_none()
     if not volunteer:
         raise HTTPException(status_code=404, detail="Волонтер не найден")
 
-    await db.delete(volunteer)
+    volunteer.status = "suspended"
+    volunteer.updated_at = datetime.utcnow()
     await db.flush()
-    return {"message": "Волонтер удален"}
+    await db.refresh(volunteer)
+    return volunteer
+
+
+@router.post("/volunteers/{volunteer_id}/activate", response_model=VolunteerResponse)
+async def activate_volunteer(
+    volunteer_id: UUID,
+    admin: User = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Активировать волонтера (изменить статус на active)"""
+    result = await db.execute(select(Volunteer).where(Volunteer.id == volunteer_id))
+    volunteer = result.scalar_one_or_none()
+    if not volunteer:
+        raise HTTPException(status_code=404, detail="Волонтер не найден")
+
+    volunteer.status = "active"
+    volunteer.updated_at = datetime.utcnow()
+    await db.flush()
+    await db.refresh(volunteer)
+    return volunteer
 
 
 @router.post("/volunteers/{volunteer_id}/extend", response_model=VolunteerResponse)
